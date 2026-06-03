@@ -6,101 +6,125 @@
 <title>Salary Calculator — net / gross (2025)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --paper: #f4f1e9;
-    --paper-2: #fbfaf5;
-    --ink: #1b1a16;
-    --ink-soft: #5c574c;
-    --line: #ddd6c6;
-    --accent: #146b54;
-    --accent-soft: #e4efe9;
-    --gold: #9a7b2e;
-    --shadow: 0 1px 2px rgba(27,26,22,.04), 0 18px 40px -22px rgba(27,26,22,.35);
+    --teal: #00b5bd;
+    --teal-bright: #18cfd6;
+    --teal-deep: #008a98;
+    --ink: #0c2630;
+    --ink-2: #14323d;
+    --muted: #5d7882;
+    --bg: #eef4f5;
+    --surface: #ffffff;
+    --line: #d7e6e8;
+    --teal-soft: #e0f6f7;
+    --shadow: 0 1px 2px rgba(12,38,48,.05), 0 22px 48px -26px rgba(12,38,48,.45);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body {
-    font-family: "Hanken Grotesk", sans-serif;
+    font-family: "Manrope", sans-serif;
     color: var(--ink);
     background:
-      radial-gradient(120% 90% at 100% 0%, #efe9da 0%, transparent 55%),
-      radial-gradient(90% 80% at 0% 100%, #ece5d3 0%, transparent 50%),
-      var(--paper);
+      radial-gradient(120% 80% at 100% -10%, #def1f2 0%, transparent 55%),
+      radial-gradient(90% 70% at -10% 110%, #e3f3f4 0%, transparent 50%),
+      var(--bg);
     min-height: 100vh;
-    padding: 40px 20px 64px;
+    padding: 0 20px 64px;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 940px; margin: 0 auto; }
+  .wrap { max-width: 960px; margin: 0 auto; }
 
-  header { margin-bottom: 26px; animation: rise .6s ease both; }
+  /* hero band */
+  .hero {
+    margin: 28px 0 24px;
+    background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 60%, #0d3a44 100%);
+    border-radius: 20px;
+    padding: 34px 34px 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: rise .6s ease both;
+  }
+  .hero::after {
+    content: ""; position: absolute; right: -80px; top: -80px;
+    width: 320px; height: 320px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--teal) 0%, transparent 70%);
+    opacity: .35;
+  }
   .eyebrow {
-    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
-    color: var(--accent); font-weight: 600; margin: 0 0 8px;
+    font-family: "Sora", sans-serif;
+    font-size: 12px; letter-spacing: .26em; text-transform: uppercase;
+    color: var(--teal-bright); font-weight: 600; margin: 0 0 10px;
   }
   h1 {
-    font-family: "Fraunces", serif;
-    font-weight: 600; font-size: clamp(30px, 5vw, 46px);
-    line-height: 1.02; margin: 0; letter-spacing: -.01em;
+    font-family: "Sora", sans-serif;
+    font-weight: 700; font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.04; margin: 0; letter-spacing: -.02em; color: #fff;
+    position: relative; z-index: 1;
   }
-  h1 em { font-style: italic; color: var(--accent); }
-  .sub { color: var(--ink-soft); margin: 12px 0 0; max-width: 60ch; font-size: 15px; }
+  h1 span { color: var(--teal-bright); }
+  .sub { color: #b7d3d8; margin: 14px 0 0; max-width: 58ch; font-size: 15px; position: relative; z-index: 1; }
 
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
   @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
 
   .card {
-    background: var(--paper-2);
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 16px;
     box-shadow: var(--shadow);
-    padding: 22px 22px 24px;
+    padding: 24px 24px 26px;
     animation: rise .6s ease both;
   }
   .card.inputs { animation-delay: .05s; }
   .card.results { animation-delay: .12s; }
 
   .card h2 {
-    font-family: "Fraunces", serif; font-weight: 600;
-    font-size: 19px; margin: 0 0 4px;
+    font-family: "Sora", sans-serif; font-weight: 600;
+    font-size: 18px; margin: 0 0 4px;
   }
-  .card .hint { color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
+  .card .hint { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
 
   /* segmented toggle */
   .seg {
     display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-    background: var(--paper); border: 1px solid var(--line);
+    background: var(--bg); border: 1px solid var(--line);
     border-radius: 11px; padding: 4px; margin-bottom: 20px;
   }
   .seg button {
     appearance: none; border: 0; cursor: pointer;
-    font-family: inherit; font-size: 14px; font-weight: 600;
-    padding: 10px 8px; border-radius: 8px; color: var(--ink-soft);
+    font-family: "Sora", sans-serif; font-size: 13.5px; font-weight: 600;
+    padding: 10px 8px; border-radius: 8px; color: var(--muted);
     background: transparent; transition: all .22s ease;
   }
-  .seg button.active { background: var(--ink); color: var(--paper-2); }
+  .seg button.active {
+    background: var(--teal); color: #fff;
+    box-shadow: 0 6px 14px -6px var(--teal-deep);
+  }
 
   .section-label {
+    font-family: "Sora", sans-serif;
     font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
-    color: var(--gold); font-weight: 700; margin: 18px 0 10px;
+    color: var(--teal-deep); font-weight: 600; margin: 18px 0 10px;
   }
   .field {
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; padding: 7px 0;
   }
   .field label { font-size: 14px; color: var(--ink); transition: color .2s; }
-  .field.dim label { color: #b3ac9c; }
+  .field.dim label { color: #aebec3; }
   .field input {
     width: 132px; text-align: right;
-    font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 500;
+    font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 500;
     color: var(--ink);
-    background: var(--paper); border: 1px solid var(--line);
+    background: var(--bg); border: 1px solid var(--line);
     border-radius: 8px; padding: 8px 10px; transition: border-color .2s, box-shadow .2s;
   }
   .field input:focus {
-    outline: none; border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft);
+    outline: none; border-color: var(--teal);
+    box-shadow: 0 0 0 3px var(--teal-soft);
   }
 
   /* results */
@@ -109,21 +133,22 @@
     gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--line);
   }
   .row:last-child { border-bottom: 0; }
-  .row .k { font-size: 14px; color: var(--ink-soft); }
+  .row .k { font-size: 14px; color: var(--muted); }
   .row .v {
-    font-family: "IBM Plex Mono", monospace; font-weight: 500;
-    font-size: 15px; white-space: nowrap;
+    font-family: "JetBrains Mono", monospace; font-weight: 500;
+    font-size: 15px; white-space: nowrap; color: var(--ink);
   }
-  .row .v .u { color: var(--ink-soft); font-size: 12px; margin-left: 5px; font-weight: 400; }
-  .row.hi .k { color: var(--ink); font-weight: 600; }
-  .row.hi .v { color: var(--accent); font-weight: 600; font-size: 16px; }
+  .row .v .u { color: var(--muted); font-size: 12px; margin-left: 5px; font-weight: 400; }
+  .row.hi .k { color: var(--ink); font-weight: 700; }
+  .row.hi .v { color: var(--teal-deep); font-weight: 600; font-size: 16px; }
   .divider {
-    margin: 14px 0 6px; font-size: 11px; letter-spacing: .16em;
-    text-transform: uppercase; color: var(--gold); font-weight: 700;
+    margin: 14px 0 6px; font-family: "Sora", sans-serif;
+    font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--teal-deep); font-weight: 600;
   }
 
   footer {
-    margin-top: 26px; color: var(--ink-soft); font-size: 12.5px;
+    margin-top: 26px; color: var(--muted); font-size: 12.5px;
     display: flex; flex-wrap: wrap; gap: 6px 16px;
   }
   footer b { color: var(--ink); font-weight: 600; }
@@ -133,11 +158,11 @@
 </head>
 <body>
   <div class="wrap">
-    <header>
+    <div class="hero">
       <p class="eyebrow">Serbia · 2025</p>
-      <h1>Salary <em>calculator</em></h1>
-      <p class="sub">Convert between net and gross salary. The amount is always entered in EUR. Logic mirrors the original 2025 spreadsheet.</p>
-    </header>
+      <h1>Salary <span>calculator</span></h1>
+      <p class="sub">Convert between net and gross salary. The amount is always entered in EUR.</p>
+    </div>
 
     <div class="grid">
       <!-- INPUTS -->
@@ -198,30 +223,30 @@
 <script>
   "use strict";
 
-  // ---- ENGINE: identical to the 2025 Excel formulas -----------------------
+  // ---- Calculation engine -------------------------------------------------
   const roundUpToHundred = x => Math.ceil(x / 100) * 100;
 
   function downstream(gross1, contracted, serviceBonus, netEurInput, p) {
-    // C13 - NET in RSD
+    // Net in RSD
     const netRsd = gross1 < p.maxBase
       ? gross1 * 0.701 + p.taxReliefNet * 0.10
       : gross1 * 0.9 + p.taxReliefNet * 0.10 - p.maxBase * 0.199;
-    // C14 - NET EUR (NBS middle rate)
+    // Net in EUR (NBS middle rate)
     const netEur = netRsd / p.nbsRate;
-    // C18 - NET + transport in EUR
+    // Net + transport allowance in EUR
     const netPlusTransportEur = netEur + p.transport / p.nbsRate;
-    // C20 - GROSS 2 in EUR
+    // Gross 2 in EUR
     const gross2Eur = gross1 > p.maxBase
       ? ((gross1 + p.maxBase * 0.1515) + p.transport) / p.nbsRate
       : ((gross1 + gross1 * 0.1515) + p.transport) / p.nbsRate;
     const gross2Rsd = gross2Eur * p.nbsRate;
-    // C22 - GROSS 1 in EUR (fixed calc rate)
+    // Gross 1 in EUR (fixed calculation rate)
     const gross1Eur = gross1 / p.calcRate;
-    // Yearly
+    // Yearly figures
     const yearlyNetBase = (netEurInput === null ? netEur : netEurInput);
     const netYearly = yearlyNetBase * 12;
     const gross1Yearly = gross1Eur * 12;
-    const gross2Yearly = gross2Eur * 12;     // E20 = C20*12
+    const gross2Yearly = gross2Eur * 12;
     const social = gross1Yearly - netYearly;
     return {
       contracted, service_bonus: serviceBonus,
@@ -234,22 +259,22 @@
     };
   }
 
-  // Mode 1: NET -> GROSS (Excel C8, C11, C12, ...)
+  // Mode 1: NET -> GROSS
   function netToGross(netEur, p) {
-    const target = netEur * p.calcRate;                         // C6*I6
-    const netOverFive = p.maxBase * 0.701 + p.taxReliefNet * 0.10; // J4
+    const target = netEur * p.calcRate;
+    const netOverFive = p.maxBase * 0.701 + p.taxReliefNet * 0.10;
     let contracted = target < netOverFive
       ? ((((target - p.transport) - (p.taxReliefContracted * 0.10)) / 0.701)
           - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004)
       : ((((target - p.transport) - p.taxReliefContracted * 0.10 + p.maxBase * 0.199) / 0.9)
           - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
     contracted = roundUpToHundred(contracted);
-    const serviceBonus = contracted * 0.004 * p.years;          // C11
-    const gross1 = contracted + p.mealAllowance + p.holidayAllowance + serviceBonus; // C12
+    const serviceBonus = contracted * 0.004 * p.years;
+    const gross1 = contracted + p.mealAllowance + p.holidayAllowance + serviceBonus;
     return downstream(gross1, contracted, serviceBonus, netEur, p);
   }
 
-  // Mode 2: GROSS -> NET (inverse of C8/C11/C12)
+  // Mode 2: GROSS -> NET (decompose gross back into contracted base and service bonus)
   function grossToNet(gross1Rsd, p) {
     const contracted = (gross1Rsd - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
     const serviceBonus = contracted * 0.004 * p.years;
@@ -288,7 +313,7 @@
     };
     let res;
     if (mode === "gross") {
-      const gross1Rsd = num("primary") * p.calcRate;   // GROSS 1 entered in EUR
+      const gross1Rsd = num("primary") * p.calcRate;   // gross 1 entered in EUR
       res = grossToNet(gross1Rsd, p);
     } else {
       res = netToGross(num("primary"), p);
