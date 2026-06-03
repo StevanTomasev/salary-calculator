@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Salary Calculator — net / gross (2025)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f4f1e9;
+    --paper-2: #fbfaf5;
+    --ink: #1b1a16;
+    --ink-soft: #5c574c;
+    --line: #ddd6c6;
+    --accent: #146b54;
+    --accent-soft: #e4efe9;
+    --gold: #9a7b2e;
+    --shadow: 0 1px 2px rgba(27,26,22,.04), 0 18px 40px -22px rgba(27,26,22,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Hanken Grotesk", sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(120% 90% at 100% 0%, #efe9da 0%, transparent 55%),
+      radial-gradient(90% 80% at 0% 100%, #ece5d3 0%, transparent 50%),
+      var(--paper);
+    min-height: 100vh;
+    padding: 40px 20px 64px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  header { margin-bottom: 26px; animation: rise .6s ease both; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0 0 8px;
+  }
+  h1 {
+    font-family: "Fraunces", serif;
+    font-weight: 600; font-size: clamp(30px, 5vw, 46px);
+    line-height: 1.02; margin: 0; letter-spacing: -.01em;
+  }
+  h1 em { font-style: italic; color: var(--accent); }
+  .sub { color: var(--ink-soft); margin: 12px 0 0; max-width: 60ch; font-size: 15px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 22px 22px 24px;
+    animation: rise .6s ease both;
+  }
+  .card.inputs { animation-delay: .05s; }
+  .card.results { animation-delay: .12s; }
+
+  .card h2 {
+    font-family: "Fraunces", serif; font-weight: 600;
+    font-size: 19px; margin: 0 0 4px;
+  }
+  .card .hint { color: var(--ink-soft); font-size: 13px; margin: 0 0 18px; }
+
+  /* segmented toggle */
+  .seg {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 11px; padding: 4px; margin-bottom: 20px;
+  }
+  .seg button {
+    appearance: none; border: 0; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 600;
+    padding: 10px 8px; border-radius: 8px; color: var(--ink-soft);
+    background: transparent; transition: all .22s ease;
+  }
+  .seg button.active { background: var(--ink); color: var(--paper-2); }
+
+  .section-label {
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--gold); font-weight: 700; margin: 18px 0 10px;
+  }
+  .field {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 7px 0;
+  }
+  .field label { font-size: 14px; color: var(--ink); transition: color .2s; }
+  .field.dim label { color: #b3ac9c; }
+  .field input {
+    width: 132px; text-align: right;
+    font-family: "IBM Plex Mono", monospace; font-size: 14px; font-weight: 500;
+    color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; transition: border-color .2s, box-shadow .2s;
+  }
+  .field input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  /* results */
+  .row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px; padding: 9px 0; border-bottom: 1px dashed var(--line);
+  }
+  .row:last-child { border-bottom: 0; }
+  .row .k { font-size: 14px; color: var(--ink-soft); }
+  .row .v {
+    font-family: "IBM Plex Mono", monospace; font-weight: 500;
+    font-size: 15px; white-space: nowrap;
+  }
+  .row .v .u { color: var(--ink-soft); font-size: 12px; margin-left: 5px; font-weight: 400; }
+  .row.hi .k { color: var(--ink); font-weight: 600; }
+  .row.hi .v { color: var(--accent); font-weight: 600; font-size: 16px; }
+  .divider {
+    margin: 14px 0 6px; font-size: 11px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--gold); font-weight: 700;
+  }
+
+  footer {
+    margin-top: 26px; color: var(--ink-soft); font-size: 12.5px;
+    display: flex; flex-wrap: wrap; gap: 6px 16px;
+  }
+  footer b { color: var(--ink); font-weight: 600; }
+
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">Serbia · 2025</p>
+      <h1>Salary <em>calculator</em></h1>
+      <p class="sub">Convert between net and gross salary. The amount is always entered in EUR. Logic mirrors the original 2025 spreadsheet.</p>
+    </header>
+
+    <div class="grid">
+      <!-- INPUTS -->
+      <section class="card inputs">
+        <h2>Input</h2>
+        <p class="hint">Pick a direction, then enter the amount and parameters.</p>
+
+        <div class="seg" id="seg">
+          <button data-mode="net" class="active">Net → Gross</button>
+          <button data-mode="gross">Gross → Net</button>
+        </div>
+
+        <div class="section-label">Main</div>
+        <div class="field"><label id="primaryLabel" for="primary">Desired NET salary (EUR)</label><input id="primary" inputmode="decimal" value="1000" /></div>
+        <div class="field"><label for="years">Years of service</label><input id="years" inputmode="decimal" value="0" /></div>
+        <div class="field"><label for="nbs_rate">NBS middle rate</label><input id="nbs_rate" inputmode="decimal" value="117.1272" /></div>
+        <div class="field"><label for="calc_rate">Calculation rate</label><input id="calc_rate" inputmode="decimal" value="117.5" /></div>
+
+        <div class="section-label">Parameters (2025)</div>
+        <div class="field" id="field_trc"><label for="tax_relief_contracted">Tax relief (contracted)</label><input id="tax_relief_contracted" inputmode="decimal" value="21712" /></div>
+        <div class="field"><label for="tax_relief_net">Tax relief (net)</label><input id="tax_relief_net" inputmode="decimal" value="28423" /></div>
+        <div class="field"><label for="max_base">Maximum base</label><input id="max_base" inputmode="decimal" value="656425" /></div>
+        <div class="field"><label for="transport">Transport allowance</label><input id="transport" inputmode="decimal" value="2200" /></div>
+        <div class="field"><label for="meal_allowance">Meal allowance</label><input id="meal_allowance" inputmode="decimal" value="3000" /></div>
+        <div class="field"><label for="holiday_allowance">Holiday allowance</label><input id="holiday_allowance" inputmode="decimal" value="1700" /></div>
+      </section>
+
+      <!-- RESULTS -->
+      <section class="card results">
+        <h2>Result</h2>
+        <p class="hint">Updates automatically as you type.</p>
+
+        <div class="row"><span class="k">Contracted salary</span><span class="v" id="r_contracted">—</span></div>
+        <div class="row"><span class="k">Service bonus</span><span class="v" id="r_service_bonus">—</span></div>
+        <div class="row hi"><span class="k">GROSS 1</span><span class="v" id="r_gross1_rsd">—</span></div>
+        <div class="row"><span class="k">GROSS 1</span><span class="v" id="r_gross1_eur">—</span></div>
+        <div class="row hi"><span class="k">NET</span><span class="v" id="r_net_rsd">—</span></div>
+        <div class="row hi"><span class="k">NET</span><span class="v" id="r_net_eur">—</span></div>
+        <div class="row"><span class="k">NET + transport</span><span class="v" id="r_net_plus_transport_eur">—</span></div>
+        <div class="row"><span class="k">GROSS 2</span><span class="v" id="r_gross2_rsd">—</span></div>
+        <div class="row"><span class="k">GROSS 2</span><span class="v" id="r_gross2_eur">—</span></div>
+
+        <div class="divider">Yearly</div>
+        <div class="row"><span class="k">Yearly NET</span><span class="v" id="r_net_yearly_eur">—</span></div>
+        <div class="row"><span class="k">Yearly GROSS 1</span><span class="v" id="r_gross1_yearly_eur">—</span></div>
+        <div class="row"><span class="k">Yearly GROSS 2</span><span class="v" id="r_gross2_yearly_eur">—</span></div>
+        <div class="row"><span class="k">Yearly contributions</span><span class="v" id="r_social_security_eur">—</span></div>
+      </section>
+    </div>
+
+    <footer>
+      <span><b>Net → Gross:</b> enter desired net in EUR.</span>
+      <span><b>Gross → Net:</b> enter GROSS 1 in EUR.</span>
+      <span>Numbers shown as 1,234,567.89.</span>
+    </footer>
+  </div>
+
+<script>
+  "use strict";
+
+  // ---- ENGINE: identical to the 2025 Excel formulas -----------------------
+  const roundUpToHundred = x => Math.ceil(x / 100) * 100;
+
+  function downstream(gross1, contracted, serviceBonus, netEurInput, p) {
+    // C13 - NET in RSD
+    const netRsd = gross1 < p.maxBase
+      ? gross1 * 0.701 + p.taxReliefNet * 0.10
+      : gross1 * 0.9 + p.taxReliefNet * 0.10 - p.maxBase * 0.199;
+    // C14 - NET EUR (NBS middle rate)
+    const netEur = netRsd / p.nbsRate;
+    // C18 - NET + transport in EUR
+    const netPlusTransportEur = netEur + p.transport / p.nbsRate;
+    // C20 - GROSS 2 in EUR
+    const gross2Eur = gross1 > p.maxBase
+      ? ((gross1 + p.maxBase * 0.1515) + p.transport) / p.nbsRate
+      : ((gross1 + gross1 * 0.1515) + p.transport) / p.nbsRate;
+    const gross2Rsd = gross2Eur * p.nbsRate;
+    // C22 - GROSS 1 in EUR (fixed calc rate)
+    const gross1Eur = gross1 / p.calcRate;
+    // Yearly
+    const yearlyNetBase = (netEurInput === null ? netEur : netEurInput);
+    const netYearly = yearlyNetBase * 12;
+    const gross1Yearly = gross1Eur * 12;
+    const gross2Yearly = gross2Eur * 12;     // E20 = C20*12
+    const social = gross1Yearly - netYearly;
+    return {
+      contracted, service_bonus: serviceBonus,
+      gross1_rsd: gross1, gross1_eur: gross1Eur,
+      net_rsd: netRsd, net_eur: netEur,
+      net_plus_transport_eur: netPlusTransportEur,
+      gross2_rsd: gross2Rsd, gross2_eur: gross2Eur,
+      net_yearly_eur: netYearly, gross1_yearly_eur: gross1Yearly,
+      gross2_yearly_eur: gross2Yearly, social_security_eur: social
+    };
+  }
+
+  // Mode 1: NET -> GROSS (Excel C8, C11, C12, ...)
+  function netToGross(netEur, p) {
+    const target = netEur * p.calcRate;                         // C6*I6
+    const netOverFive = p.maxBase * 0.701 + p.taxReliefNet * 0.10; // J4
+    let contracted = target < netOverFive
+      ? ((((target - p.transport) - (p.taxReliefContracted * 0.10)) / 0.701)
+          - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004)
+      : ((((target - p.transport) - p.taxReliefContracted * 0.10 + p.maxBase * 0.199) / 0.9)
+          - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
+    contracted = roundUpToHundred(contracted);
+    const serviceBonus = contracted * 0.004 * p.years;          // C11
+    const gross1 = contracted + p.mealAllowance + p.holidayAllowance + serviceBonus; // C12
+    return downstream(gross1, contracted, serviceBonus, netEur, p);
+  }
+
+  // Mode 2: GROSS -> NET (inverse of C8/C11/C12)
+  function grossToNet(gross1Rsd, p) {
+    const contracted = (gross1Rsd - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
+    const serviceBonus = contracted * 0.004 * p.years;
+    return downstream(gross1Rsd, contracted, serviceBonus, null, p);
+  }
+
+  // ---- UI ------------------------------------------------------------------
+  const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const $ = id => document.getElementById(id);
+  let mode = "net";
+
+  const num = id => {
+    const raw = ($(id).value || "").trim().replace(",", ".");
+    const v = parseFloat(raw);
+    return isNaN(v) ? 0 : v;
+  };
+
+  const units = {
+    contracted: "RSD", service_bonus: "RSD", gross1_rsd: "RSD", gross1_eur: "EUR",
+    net_rsd: "RSD", net_eur: "EUR", net_plus_transport_eur: "EUR",
+    gross2_rsd: "RSD", gross2_eur: "EUR", net_yearly_eur: "EUR",
+    gross1_yearly_eur: "EUR", gross2_yearly_eur: "EUR", social_security_eur: "EUR"
+  };
+
+  function recalc() {
+    const p = {
+      years: num("years"),
+      nbsRate: num("nbs_rate") || 1,
+      calcRate: num("calc_rate") || 1,
+      taxReliefContracted: num("tax_relief_contracted"),
+      taxReliefNet: num("tax_relief_net"),
+      maxBase: num("max_base"),
+      transport: num("transport"),
+      mealAllowance: num("meal_allowance"),
+      holidayAllowance: num("holiday_allowance")
+    };
+    let res;
+    if (mode === "gross") {
+      const gross1Rsd = num("primary") * p.calcRate;   // GROSS 1 entered in EUR
+      res = grossToNet(gross1Rsd, p);
+    } else {
+      res = netToGross(num("primary"), p);
+    }
+    for (const key in units) {
+      $("r_" + key).innerHTML = fmt.format(res[key]) + '<span class="u">' + units[key] + '</span>';
+    }
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll("#seg button").forEach(b =>
+      b.classList.toggle("active", b.dataset.mode === m));
+    $("primaryLabel").textContent = m === "gross" ? "GROSS 1 (EUR)" : "Desired NET salary (EUR)";
+    $("primary").value = m === "gross" ? "1374" : "1000";
+    // "Tax relief (contracted)" only matters in net -> gross mode
+    $("field_trc").classList.toggle("dim", m === "gross");
+    recalc();
+  }
+
+  document.querySelectorAll("#seg button").forEach(b =>
+    b.addEventListener("click", () => setMode(b.dataset.mode)));
+  document.querySelectorAll("input").forEach(i =>
+    i.addEventListener("input", recalc));
+
+  recalc();
+</script>
+</body>
+</html>
