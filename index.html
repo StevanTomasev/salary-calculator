@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Salary Calculator — net / gross (2025)</title>
+<title>Salary Calculator — net / gross (2026)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -158,7 +158,7 @@
 
         <div class="seg" id="seg">
           <button data-mode="net" class="active">Net → Gross</button>
-          <button data-mode="gross">Gross → Net</button>
+          <button data-mode="gross2">Gross 2 → Net</button>
         </div>
 
         <div class="section-label">Main</div>
@@ -194,7 +194,7 @@
         <div class="row hi"><span class="k">GROSS 1</span><span class="v" id="r_gross1">—</span></div>
         <div class="row hi"><span class="k">NET</span><span class="v" id="r_net">—</span></div>
         <div class="row"><span class="k">NET + transport</span><span class="v" id="r_net_plus_transport">—</span></div>
-        <div class="row"><span class="k">GROSS 2</span><span class="v" id="r_gross2">—</span></div>
+        <div class="row hi"><span class="k">GROSS 2</span><span class="v" id="r_gross2">—</span></div>
 
         <div class="divider">Yearly</div>
         <div class="row"><span class="k">Yearly NET</span><span class="v" id="r_yearly_net">—</span></div>
@@ -211,7 +211,7 @@
 
     <footer>
       <span><b>Net → Gross:</b> enter desired net in EUR.</span>
-      <span><b>Gross → Net:</b> enter GROSS 1 in EUR.</span>
+      <span><b>Gross 2 → Net:</b> enter GROSS 2 in EUR.</span>
     </footer>
   </div>
 
@@ -266,10 +266,23 @@
     return downstream(gross1, contracted, serviceBonus, netEur, p);
   }
 
-  function grossToNet(gross1Rsd, p) {
-    const contracted = (gross1Rsd - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
+  // GROSS 2 (entered in EUR) -> NET. Inverts the gross1 -> gross2 relation
+  // used in downstream(), then reuses the same engine to compute everything.
+  //
+  //   gross2Rsd = gross1 * 1.1515 + transport            (when gross1 <= maxBase)
+  //   gross2Rsd = gross1 + maxBase * 0.1515 + transport   (when gross1 >  maxBase)
+  //
+  // gross2Eur in downstream is divided by nbsRate, so the EUR input is
+  // converted back to RSD with nbsRate to keep the round-trip exact.
+  function gross2ToNet(gross2Eur, p) {
+    const gross2Rsd = gross2Eur * p.nbsRate;
+    let gross1 = (gross2Rsd - p.transport) / 1.1515;       // assume gross1 <= maxBase
+    if (gross1 > p.maxBase) {                              // above the cap -> other branch
+      gross1 = gross2Rsd - p.transport - p.maxBase * 0.1515;
+    }
+    const contracted = (gross1 - p.mealAllowance - p.holidayAllowance) / (1 + p.years * 0.004);
     const serviceBonus = contracted * 0.004 * p.years;
-    return downstream(gross1Rsd, contracted, serviceBonus, null, p);
+    return downstream(gross1, contracted, serviceBonus, null, p);
   }
 
   // ---- UI ------------------------------------------------------------------
@@ -299,7 +312,7 @@
   ];
 
   const INPUT_LABELS = {
-    primary: () => mode === "gross" ? "GROSS 1 (EUR)" : "Desired NET salary (EUR)",
+    primary: () => mode === "gross2" ? "GROSS 2 (EUR)" : "Desired NET salary (EUR)",
     years: () => "Years of service",
     nbs_rate: () => "NBS middle rate",
     calc_rate: () => "Calculation rate",
@@ -327,8 +340,8 @@
 
   function compute() {
     const p = gatherParams();
-    if (mode === "gross") {
-      return grossToNet(num("primary") * p.calcRate, p);
+    if (mode === "gross2") {
+      return gross2ToNet(num("primary"), p);
     }
     return netToGross(num("primary"), p);
   }
@@ -343,12 +356,26 @@
   }
 
   function setMode(m) {
+    if (m === mode) return;
     mode = m;
     document.querySelectorAll("#seg button").forEach(b => b.classList.toggle("active", b.dataset.mode === m));
     $("primaryLabel").textContent = INPUT_LABELS.primary();
-    $("primary").value = m === "gross" ? "1374" : "1000";
-    $("field_trc").classList.toggle("dim", m === "gross");
-    render();
+    $("field_trc").classList.toggle("dim", m === "gross2");
+
+    // Seed the input from the figures already on screen, but DO NOT recompute.
+    // The gross1 <-> gross2 relation is exactly invertible, but net <-> gross is
+    // not (different rates: calcRate vs nbsRate, different reliefs, plus the
+    // round-up-to-hundred). Re-running the forward path on a derived net is what
+    // made the numbers shrink on every tab switch. By keeping the existing,
+    // mutually consistent results, flipping tabs changes nothing — only a real
+    // edit to an input triggers a fresh recompute.
+    if (lastValues) {
+      const seed = m === "gross2" ? lastValues.gross2.eur : lastValues.net.eur;
+      $("primary").value = String(Math.round(seed * 100) / 100);
+    } else {
+      $("primary").value = m === "gross2" ? "1605" : "1000";
+      render();
+    }
   }
 
   function setCurrency(c) {
@@ -360,7 +387,7 @@
   // ---- Report download -----------------------------------------------------
   function buildReportHtml() {
     const date = new Date().toLocaleString("en-GB");
-    const dir = mode === "gross" ? "Gross &#8594; Net" : "Net &#8594; Gross";
+    const dir = mode === "gross2" ? "Gross 2 &#8594; Net" : "Net &#8594; Gross";
     const cur = currency.toLowerCase();
 
     const inputRows = Object.keys(INPUT_LABELS).map(id =>
